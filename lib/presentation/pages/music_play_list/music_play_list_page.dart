@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:music_playlist_app/common/style/app_colors.dart';
 import 'package:music_playlist_app/domain/model/music/music_data_model.dart';
@@ -6,10 +7,16 @@ import 'package:music_playlist_app/presentation/pages/music_play_list/components
 import 'package:music_playlist_app/presentation/pages/music_play_list/components/music_detail_box.dart';
 import 'package:music_playlist_app/presentation/pages/music_play_list/components/music_loading_shimmer.dart';
 import 'package:music_playlist_app/presentation/pages/music_play_list/controller/music_play_list_controller.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-class MusicPlayListPage extends StatelessWidget {
+class MusicPlayListPage extends StatefulWidget {
   const MusicPlayListPage({super.key});
 
+  @override
+  State<MusicPlayListPage> createState() => _MusicPlayListPageState();
+}
+
+class _MusicPlayListPageState extends State<MusicPlayListPage> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MusicPlayListController>();
@@ -18,14 +25,21 @@ class MusicPlayListPage extends StatelessWidget {
       backgroundColor: AppColors.blueDiane,
       appBar: AppBar(
         title: const Text('Music Playlist'),
+        centerTitle: false,
       ),
       body: Obx(
         () {
-          return ListView.builder(
-            itemCount:
-                controller.isLoading.value ? 30 : controller.musics.length,
-            padding: const EdgeInsets.symmetric(
-              vertical: 10,
+          int itemCount =
+              controller.isLoading.value ? 30 : controller.musics.length;
+          double bottomPadding =
+              controller.currentlyPlayingMusic.value == null ? 10 : .3.sw;
+
+          return ScrollablePositionedList.builder(
+            itemScrollController: controller.itemScrollController,
+            itemCount: itemCount,
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: bottomPadding,
             ),
             itemBuilder: (
               BuildContext context,

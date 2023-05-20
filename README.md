@@ -9,6 +9,8 @@ You can play the music with the current playlist.
 - **Pause the music** - tap on a pause icon on the bottom sheet.
 - **Change the music** or go to next or previous music - tap on any song in the playlist and can tap the next and previous icons.
 - **Stop the music** - swipe down on the bottom sheet to shop the song.
+- **Play on background mode** - music is still playing after you leave the app.
+- **Can be controlled from outside the app** - music can be controlled from outside the app.
 
 ## Getting Started
 

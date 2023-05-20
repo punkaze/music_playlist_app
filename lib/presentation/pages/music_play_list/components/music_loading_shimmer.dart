@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:music_playlist_app/common/style/app_colors.dart';
 import 'package:music_playlist_app/presentation/shared_controller/custom_shimmer.dart';
 
@@ -11,10 +10,10 @@ class MusicLoadingShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(
-        vertical: 3,
+        vertical: 6,
       ),
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 16,
       ),
       child: CustomShimmer(
         child: Row(
@@ -57,13 +56,6 @@ class MusicLoadingShimmer extends StatelessWidget {
                 ),
               ),
             ),
-            const Padding(
-                padding: EdgeInsets.all(8),
-                child: FaIcon(
-                  FontAwesomeIcons.play,
-                  color: AppColors.white,
-                  size: 25,
-                )),
           ],
         ),
       ),

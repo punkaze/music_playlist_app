@@ -131,11 +131,17 @@ class _CurrentlyPlayingMusicBottomSheetState
                           PlayPauseButton(
                             musicState: currentMusic.state,
                             onTapMusicPlayControl: () =>
-                                controller.onTapMusicPlayControl(),
+                                controller.isSourceReady.value
+                                    ? controller.onTapMusicPlayControl()
+                                    : () {},
                             onTapNextPlayControl: () =>
-                                controller.onTapNextSong(),
+                                controller.isSourceReady.value
+                                    ? controller.onTapNextSong()
+                                    : () {},
                             onTapPreviousPlayControl: () =>
-                                controller.onTapPreviousSong(),
+                                controller.isSourceReady.value
+                                    ? controller.onTapPreviousSong()
+                                    : () {},
                           ),
                         ],
                       ),
