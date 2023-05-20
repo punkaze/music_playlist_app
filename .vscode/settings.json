@@ -7,6 +7,7 @@
     "datetime",
     "Getx",
     "middlewares",
+    "ryanheise",
     "screenutil",
     "vsync"
   ]

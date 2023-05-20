@@ -50,11 +50,11 @@ post_install do |installer|
    end
 
   #  # JUST_AUDIO
-  #  target.build_configurations.each do |config|
-  #     config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
-  #       '$(inherited)',
-  #       'AUDIO_SESSION_MICROPHONE=0'
-  #     ]
-  #   end
+   target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'AUDIO_SESSION_MICROPHONE=0'
+      ]
+    end
   end
 end
