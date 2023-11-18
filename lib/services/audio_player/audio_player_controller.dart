@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:music_playlist_app/domain/model/music/music_data_model.dart';
+import 'package:music_playlist_app/utils/logger/logger.dart';
 
 class AudioPlayerController {
   final AudioPlayer _player = AudioPlayer();
@@ -45,10 +46,18 @@ class AudioPlayerController {
         initialIndex: 0,
         initialPosition: Duration.zero,
       );
-    } on PlatformException catch (e) {
-      print('Platform Exception =========> $e');
-    } catch (e) {
-      print(e);
+    } on PlatformException catch (error, stackTrace) {
+      Logger.instance.e(
+        'Error: $error, StackTrace: $stackTrace',
+        error,
+        stackTrace,
+      );
+    } catch (error, stackTrace) {
+      Logger.instance.e(
+        'Error: $error, StackTrace: $stackTrace',
+        error,
+        stackTrace,
+      );
     }
   }
 
