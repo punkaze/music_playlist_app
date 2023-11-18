@@ -7,10 +7,12 @@ import 'package:music_playlist_app/domain/model/music/enum/music_state.dart';
 import 'package:music_playlist_app/domain/model/music/music_data_model.dart';
 import 'package:music_playlist_app/domain/repositories/musics/music_repository.dart';
 import 'package:music_playlist_app/services/audio_player/audio_player_controller.dart';
+import 'package:music_playlist_app/utils/logger/logger.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class MusicPlayListController extends GetxController
     with GetTickerProviderStateMixin {
+  final _loggerInst = Logger.instance;
   final MusicRepository _repository = getIt<MusicRepository>();
   final AudioPlayerController _audioPlayer = getIt<AudioPlayerController>();
 
@@ -28,21 +30,38 @@ class MusicPlayListController extends GetxController
   @override
   Future<void> onInit() async {
     super.onInit();
+    _loggerInst.i('MusicPlayListController onInit');
     await retrieveMusicPlayList();
-    _audioPlayer.processingStateStream.listen((state) {
-      if (ProcessingState.ready == state) {
-        isSourceReady.value = true;
-      } else {
-        isSourceReady.value = false;
-      }
-    });
-    _audioPlayer.currentIndexStream.listen((index) {
-      if (index != null && currentlyPlayingMusic.value != null) {
-        changeSong(index);
-      }
-    }, onError: (error) {
-      print('stream current index stream --> $error');
-    });
+    _audioPlayer.processingStateStream.listen(
+      (state) {
+        if (ProcessingState.ready == state) {
+          isSourceReady.value = true;
+        } else {
+          isSourceReady.value = false;
+        }
+      },
+      onError: (error, stackTract) {
+        _loggerInst.e(
+          'Error on processing state stream --> $error, StackTrace: $stackTract',
+          error,
+          stackTract,
+        );
+      },
+    );
+    _audioPlayer.currentIndexStream.listen(
+      (index) {
+        if (index != null && currentlyPlayingMusic.value != null) {
+          changeSong(index);
+        }
+      },
+      onError: (error, stackTrace) {
+        _loggerInst.e(
+          'Error on current index stream --> $error, StackTrace: $stackTrace',
+          error,
+          stackTrace,
+        );
+      },
+    );
   }
 
   @override
@@ -65,22 +84,35 @@ class MusicPlayListController extends GetxController
 
       await _audioPlayer.setPlayListSource(musics);
       isLoading.value = false;
-    } catch (e) {
+    } catch (error, stackTrace) {
+      _loggerInst.e(
+        'Error on retrieve music play list --> $error',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
 
   void updateMusicState(MusicState state) {
-    if (currentlyPlayingMusic.value != null) {
-      final int targetIndex = sources[currentlyPlayingMusic.value!.source]!;
-      musics[targetIndex] = musics[targetIndex].copyWith(
-        state: state,
-      );
-      if (state == MusicState.idle) {
-        currentlyPlayingMusic.value = null;
-      } else {
-        currentlyPlayingMusic.value = musics[targetIndex];
+    try {
+      if (currentlyPlayingMusic.value != null) {
+        final int targetIndex = sources[currentlyPlayingMusic.value!.source]!;
+        musics[targetIndex] = musics[targetIndex].copyWith(
+          state: state,
+        );
+        if (state == MusicState.idle) {
+          currentlyPlayingMusic.value = null;
+        } else {
+          currentlyPlayingMusic.value = musics[targetIndex];
+        }
       }
+    } catch (error, stackTrace) {
+      _loggerInst.e(
+        'Error on update music state --> $error',
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -101,8 +133,8 @@ class MusicPlayListController extends GetxController
       if (music.state == MusicState.pause) {
         await playMusic();
       }
-    } catch (e) {
-      print('on tap music box --> $e');
+    } catch (error, stackTrace) {
+      _loggerInst.e('Error on tap music box --> $error', error, stackTrace);
     }
   }
 
@@ -111,57 +143,81 @@ class MusicPlayListController extends GetxController
       updateMusicState(MusicState.idle);
       currentlyPlayingMusic.value = musics[index];
       playAt(musics[index].source);
-    } catch (e) {
-      print('change song error --> $e');
+    } catch (error, stackTrace) {
+      _loggerInst.e('Error on change song --> $error', error, stackTrace);
     }
   }
 
   Future<void> onTapMusicPlayControl() async {
-    if (currentlyPlayingMusic.value != null) {
-      final MusicState currentState = currentlyPlayingMusic.value!.state;
-      if (currentState == MusicState.playing) {
-        await pauseMusic();
-      } else if (currentState == MusicState.pause) {
-        await playMusic();
+    try {
+      if (currentlyPlayingMusic.value != null) {
+        final MusicState currentState = currentlyPlayingMusic.value!.state;
+        if (currentState == MusicState.playing) {
+          await pauseMusic();
+        } else if (currentState == MusicState.pause) {
+          await playMusic();
+        }
       }
+    } catch (error, stackTrace) {
+      _loggerInst.e(
+        'Error on tap music play control --> $error',
+        error,
+        stackTrace,
+      );
     }
   }
 
   Future<void> onTapNextSong() async {
-    if (currentlyPlayingMusic.value != null) {
-      final int? nextIndex = _audioPlayer.nextSongIndex;
-      if (nextIndex != null) {
-        itemScrollController.scrollTo(
-          index: nextIndex,
-          duration: const Duration(milliseconds: 1000),
-        );
-        await replayMusic(musics[nextIndex].source);
-      } else {
-        itemScrollController.scrollTo(
-          index: 0,
-          duration: const Duration(milliseconds: 1000),
-        );
-        await replayMusic(musics[0].source);
+    try {
+      if (currentlyPlayingMusic.value != null) {
+        final int? nextIndex = _audioPlayer.nextSongIndex;
+        if (nextIndex != null) {
+          itemScrollController.scrollTo(
+            index: nextIndex,
+            duration: const Duration(milliseconds: 1000),
+          );
+          await replayMusic(musics[nextIndex].source);
+        } else {
+          itemScrollController.scrollTo(
+            index: 0,
+            duration: const Duration(milliseconds: 1000),
+          );
+          await replayMusic(musics[0].source);
+        }
       }
+    } catch (error, stackTrace) {
+      _loggerInst.e(
+        'Error on tap next song --> $error',
+        error,
+        stackTrace,
+      );
     }
   }
 
   Future<void> onTapPreviousSong() async {
-    if (currentlyPlayingMusic.value != null) {
-      final int? previousIndex = _audioPlayer.previousSongIndex;
-      if (previousIndex != null) {
-        itemScrollController.scrollTo(
-          index: previousIndex,
-          duration: const Duration(milliseconds: 1000),
-        );
-        await replayMusic(musics[previousIndex].source);
-      } else {
-        itemScrollController.scrollTo(
-          index: musics.length - 1,
-          duration: const Duration(milliseconds: 1000),
-        );
-        await replayMusic(musics[musics.length - 1].source);
+    try {
+      if (currentlyPlayingMusic.value != null) {
+        final int? previousIndex = _audioPlayer.previousSongIndex;
+        if (previousIndex != null) {
+          itemScrollController.scrollTo(
+            index: previousIndex,
+            duration: const Duration(milliseconds: 1000),
+          );
+          await replayMusic(musics[previousIndex].source);
+        } else {
+          itemScrollController.scrollTo(
+            index: musics.length - 1,
+            duration: const Duration(milliseconds: 1000),
+          );
+          await replayMusic(musics[musics.length - 1].source);
+        }
       }
+    } catch (error, stackTrace) {
+      _loggerInst.e(
+        'Error on tap previous song --> $error',
+        error,
+        stackTrace,
+      );
     }
   }
 
