@@ -24,3 +24,26 @@ You can play the music with the current playlist.
     ```flutter run --target lib/main_staging.dart```
   - for PRODUCTION env
     ```flutter run --target lib/main_staging.dart```
+
+
+- **Build flutter android app apk**
+  - for DEVELOPMENT env, apk file
+    ```flutter build apk --target lib/main_development.dart --release```
+  - for STAGING env, apk file
+    ```flutter build apk --target lib/main_staging.dart --release```
+  - for PRODUCTION env, apk file
+    ```flutter build apk --target lib/main_staging.dart --release```
+
+- **Build flutter ios app bundle**
+  - for DEVELOPMENT env, bundle file
+    ```flutter build ipa --target lib/main_development.dart --release```
+  - for STAGING env, bundle file
+    ```flutter build ipa --target lib/main_staging.dart --release```
+  - for PRODUCTION env, bundle file
+    ```flutter build ipa --target lib/main_staging.dart --release```
+
+
+## Firebase App Distribution
+- **setup firebase app distribution**
+  - [link](https://firebase.google.com/codelabs/appdistribution-udid-collection#0)
+- troubleshooting for firebase app distribution [link](https://firebase.google.com/docs/app-distribution/troubleshooting?platform=ios)

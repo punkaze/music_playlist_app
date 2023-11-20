@@ -24,7 +24,10 @@ class _MusicPlayListPageState extends State<MusicPlayListPage> {
     return Scaffold(
       backgroundColor: AppColors.blueDiane,
       appBar: AppBar(
-        title: const Text('Music Playlist'),
+        title: const Text(
+          'Music Playlist',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: false,
       ),
       body: Obx(

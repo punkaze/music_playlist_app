@@ -1,0 +1,131 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+# Example version name: 1.0.0
+flutterVersion = flutter_version()
+# Example version code: 1
+versionName = flutterVersion["version_name"]
+versionCode = flutterVersion["version_code"].to_i
+# Example build name: versionName+versionCode
+
+appIdentifier = "com.innotionloop.mpla"
+
+platform :android do
+  desc "Find the firebase app id for the given app identifier"
+  lane :appId do
+    find_firebase_app_id(app_identifier: appIdentifier)
+  end
+
+  desc "Runs to get the current version of the app"
+  lane :version do
+    puts("current version: #{appId} - #{versionName}+#{versionCode}")
+  end
+
+  desc "Runs to get the current version of the app from firebase app distribution"
+  lane :version_firebase do
+    latestReleaseVersion = firebase_app_distribution_get_latest_release(app: appId)
+
+    if latestReleaseVersion.nil?
+      latestReleaseVersion = {:displayVersion => versionName, :buildVersion => versionCode}
+    end
+
+    latestVersion = latestReleaseVersion[:displayVersion]
+    latestBuild = latestReleaseVersion[:buildVersion]
+
+    puts("current version: #{latestVersion}+#{latestBuild}")
+    "#{latestVersion}+#{latestBuild}"
+  end
+
+  desc "Update the app version in pubspec.yaml [version pattern: 1.0.0+1]}"
+  lane :increase_version do |options|
+    initVersion = options[:version] # version name: 1.0.0+1, 1.0.0
+    fromFirebase = false
+
+    if initVersion.nil?
+      initVersion = version_firebase
+      fromFirebase = true
+    end
+    # Get the current version
+    currentVersionName = initVersion.split("+")[0]
+    currentVersionCode = initVersion.split("+")[1].to_i
+
+    # Increase the version code
+    if !fromFirebase && currentVersionCode == 0
+      currentVersionCode = currentVersionCode + 1
+    end
+
+    if fromFirebase
+      currentVersionCode = currentVersionCode + 1
+    end
+
+    # Update version in pubspec.yaml
+    puts("Updating version in pubspec.yaml with this version: #{currentVersionName}+#{currentVersionCode}")
+    filename = "../../pubspec.yaml"
+    outdata = File.read(filename).gsub(/version: \d+\.\d+\.\d+\+\d+/, "version: #{currentVersionName}+#{currentVersionCode}")
+    File.open(filename, 'w') do |out|
+      out << outdata
+    end
+  end
+
+  desc "Build the app apk, example: fastlane build flavor:development"
+  lane :distribute do |options|
+    releaseNote = options[:release_note] # release note
+    incommingVersion = options[:version] # version name: 1.0.0+1, 1.0.0
+    flavor = options[:flavor] # flavor name: development, staging, production
+
+    if flavor.nil?
+      flavor = "development"
+    end
+
+    buildTargetFile = "lib/main_#{flavor}.dart"
+
+    # Increase the version code
+    increase_version(version: incommingVersion)
+
+    # Build the app with Flutter
+    puts("Building the app from #{buildTargetFile}")
+    sh "cd ../.. && flutter clean && flutter packages get && flutter build apk --target lib/main_#{buildTargetFile}.dart --release"
+
+    # Upload the app to Firebase App Distribution
+    projectPath = sh "cd ../.. && pwd"
+    projectPath = projectPath.split("\n")[0]
+    apkPath = "#{projectPath}/build/app/outputs/flutter-apk/app-release.apk"
+
+    # puts("Project path: #{projectPath}")
+    # puts("Apk path: #{projectPath}/build/app/outputs/flutter-apk/app-release.apk")
+
+    firebase_app_distribution(
+      app: appId,
+      groups: "internal_tester",
+      release_notes: releaseNote,
+      apk_path: "#{projectPath}/build/app/outputs/flutter-apk/app-release.apk"
+    )
+  end
+
+  error do |lane, exception|
+    puts("Error: #{exception.message}")
+    if lane == :distribute
+      # Set the version back to the previous version
+      puts("Updating version in pubspec.yaml with this version: #{versionName}+#{versionCode}")
+      filename = "../../pubspec.yaml"
+      outdata = File.read(filename).gsub(/version: \d+\.\d+\.\d+\+\d+/, "version: #{versionName}+#{versionCode}")
+      File.open(filename, 'w') do |out|
+        out << outdata
+      end
+    end
+  end
+end
