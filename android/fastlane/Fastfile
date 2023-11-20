@@ -98,7 +98,7 @@ platform :android do
 
     # Build the app with Flutter
     puts("Building the app from #{buildTargetFile}")
-    sh "cd ../.. && flutter clean && flutter packages get && flutter build apk --target lib/main_#{buildTargetFile}.dart --release"
+    sh "cd ../.. && flutter clean && flutter packages get && flutter build apk --target #{buildTargetFile} --release"
 
     # Upload the app to Firebase App Distribution
     projectPath = sh "cd ../.. && pwd"
